@@ -6,8 +6,16 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // Pre-load the Lottie animation ahead of time
+  final _lottieAnimation = AssetLottie('assets/8.zip').load();
 
   @override
   Widget build(BuildContext context) {
@@ -17,19 +25,43 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(),
+      home: FutureBuilder<LottieComposition>(
+        future: _lottieAnimation,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return ErrorWidget(snapshot.error!);
+          }
+
+          var animation = snapshot.data;
+          if (animation != null) {
+            return MyHomePage(lottieAnimation: animation);
+          } else {
+            // Don't show the app until the animation is loaded.
+            // Since it is loaded from the local assets, it will only take 1 frame.
+            return const SizedBox();
+          }
+        },
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  // Only open the home page once we have the lottie animation fully loaded
+  final LottieComposition lottieAnimation;
+
+  const MyHomePage({Key? key, required this.lottieAnimation}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  // Create a shared animation controller that will be used by the
+  late final _animationController = AnimationController(
+      vsync: this, duration: widget.lottieAnimation.duration)
+    ..repeat();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,20 +153,20 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
             child: Align(
               alignment: Alignment.bottomRight,
-              child: LottieBuilder.asset(
-                'assets/8.zip',
+              // The FocusedMenuHolder internally uses a "Hero" widget
+              // The hero widget will move the widget around and this operation
+              // will create several "State".
+              // https://stackoverflow.com/questions/56698362/hero-widget-inits-child-widget-multiple-times
+              // The animation state will be reset and it create a jump.
+              // To prevent that we use a shared AnimationController which will
+              // hold the current animation state and remove the flicker.
+              child: Lottie(
+                composition: widget.lottieAnimation,
+                controller: _animationController,
                 height: 140,
                 width: 140,
                 frameRate: FrameRate.composition,
                 options: LottieOptions(enableMergePaths: false),
-                errorBuilder: (c, e, s) => Container(
-                  height: 140,
-                  width: 140,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                  ),
-                ),
-                repeat: false,
               ),
             ),
           ),
