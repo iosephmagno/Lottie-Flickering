@@ -14,13 +14,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> { 
-// Set cache size (max number of cached files)
-Lottie.cache.maximumSize = 500;
+
 
 // Pre-load the Lottie animation ahead of time
 
 // Pre-load a file from local asset
-final _lottieAnimation = AssetLottie('assets/8.zip').load();
+//final _lottieAnimation = AssetLottie('assets/8.zip').load();
 
 // Pre-load a file from network
 final _lottieAnimation = NetworkLottie(
@@ -74,6 +73,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+  
+  // Set cache size (max number of cached files)
+  Lottie.cache.maximumSize = 500;
+  
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chat Screen"),
