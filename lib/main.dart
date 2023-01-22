@@ -14,8 +14,13 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // Pre-load the Lottie animation ahead of time
-  final _lottieAnimation = AssetLottie('assets/8.zip').load();
+  // Pre-load a file from local asset
+ //final _lottieAnimation = AssetLottie('assets/8.zip').load();
+
+ //Pre-load a file from network
+  final _lottieAnimation = NetworkLottie(
+      'https://d305e11xqcgjdr.cloudfront.net/stickers/cl69ghdwt000100bx966hxbp6/20.zip')
+      .load();
 
   @override
   Widget build(BuildContext context) {
